@@ -1,0 +1,186 @@
+package com.project.home_system.services;
+
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.project.home_system.config.StorageProperties;
+import com.project.home_system.dto.CreateDirectoryRequest;
+import com.project.home_system.dto.FileResponse;
+import com.project.home_system.model.FileType;
+
+@Service 
+public class StorageService {
+    
+    private final Path root;
+    public StorageService(StorageProperties properties) throws IOException{
+        Path configuredRoot = Path.of(properties.getRoot())
+            .toAbsolutePath();
+
+        Files.createDirectories(configuredRoot);
+        this.root = configuredRoot.toRealPath();
+    }
+
+    public List<FileResponse> listFiles(String path){
+        Path directory = resolvePath(path);
+        validateDirectory(directory);
+
+        List<FileResponse> result = new ArrayList<>();
+
+        try(DirectoryStream<Path> stream = Files.newDirectoryStream(directory)){
+            for(Path entry : stream){
+                if(Files.isSymbolicLink(entry)) continue;
+                result.add(toResponse(entry));
+            }
+        }catch (IOException exception){
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Could not list directory",
+                exception
+            );
+        }
+
+        result.sort(
+            Comparator.comparing(
+                (FileResponse file) -> 
+                    file.type() != FileType.DIRECTORY
+                ).thenComparing(
+                    FileResponse::name,
+                    String.CASE_INSENSITIVE_ORDER
+                )
+        );
+
+        return result;
+    }
+
+    public FileResponse createDirectory(CreateDirectoryRequest request){
+        validateName(request.name());
+        Path parent = resolvePath(request.path());
+        validateDirectory(parent);
+        Path directory = parent.resolve(request.name());
+
+        try{
+            Files.createDirectory(directory);
+            return toResponse(directory);
+        }catch (FileAlreadyExistsException exception){
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Directory already exists"
+            );
+        }catch (IOException exception){
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Could not create directory"
+            );
+        }
+    }
+
+    private Path resolvePath(String path){
+        try{
+            Path relative = Path.of(path == null ? "" : path);
+            if(relative.isAbsolute()){
+                throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Absolute paths are not allowed"
+                );
+            }
+
+            Path resolved = root.resolve(relative).normalize();
+
+            if(!resolved.startsWith(root)){
+                throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Access outside storage is forbidden"
+                );
+            }
+
+            Path current = root;
+            for(Path part : root.relativize(resolved)){
+                current = current.resolve(part);
+                if(Files.isSymbolicLink(current)){
+                    throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN, 
+                        "Symbolic links are not allowed"
+                    );
+                }
+            }
+
+            return resolved;
+        } catch (InvalidPathException exception){
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid path"
+            );
+        }
+    }
+
+    private void validateName(String name){
+        if(name == null || name.isBlank()
+            || name.equals(".")
+            || name.equals("..")
+            || name.contains("/")
+            || name.contains("\\")
+            || name.contains(":")){
+            
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid directory name"
+            );
+        }
+
+        try{
+            Path.of(name);
+        } catch(InvalidPathException exception){
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid directory name"
+            );
+        }
+    }
+
+    private void validateDirectory(Path directory){
+        if(!Files.exists(directory, LinkOption.NOFOLLOW_LINKS)){
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Directory not found"
+            );
+        }
+
+        if(!Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS)){
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Path is not a directory"
+            );
+        }
+    }
+
+    private FileResponse toResponse(Path path) throws IOException {
+        BasicFileAttributes attributes = Files.readAttributes(path,
+             BasicFileAttributes.class, 
+            LinkOption.NOFOLLOW_LINKS);
+        
+        boolean directory = attributes.isDirectory();
+
+        return new FileResponse(
+            path.getFileName().toString(),
+            root.relativize(path)
+                .toString().replace("\\", "/"),
+            directory ? FileType.DIRECTORY : FileType.FILE,
+            directory ? null : attributes.size(),
+            attributes.lastModifiedTime().toInstant()
+        );
+    }
+}
