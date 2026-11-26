@@ -1,22 +1,26 @@
 package com.project.home_system.services;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-
 import com.project.home_system.config.StorageProperties;
 import com.project.home_system.dto.CreateDirectoryRequest;
 import com.project.home_system.dto.FileResponse;
@@ -43,6 +47,13 @@ public class StorageService {
         try(DirectoryStream<Path> stream = Files.newDirectoryStream(directory)){
             for(Path entry : stream){
                 if(Files.isSymbolicLink(entry)) continue;
+
+                String name = entry.getFileName().toString();
+
+                if(name.startsWith(".upload-") && name.endsWith(".tmp") ){
+                    continue;
+                }
+
                 result.add(toResponse(entry));
             }
         }catch (IOException exception){
@@ -88,6 +99,95 @@ public class StorageService {
         }
     }
 
+    public FileResponse uploadFile(String path, MultipartFile file){
+        if(file.isEmpty()){
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "File is empty"
+            );
+        }
+
+        String filename = file.getOriginalFilename();
+        validateName(filename);
+        Path parent = resolvePath(path);
+        validateDirectory(parent);
+
+        Path destination = parent.resolve(filename);
+        Path temporaryFile = null;
+
+        try{
+            temporaryFile = Files.createTempFile(
+                parent, 
+                ".upload-", 
+                ".tmp"
+            );
+
+            try(InputStream input = file.getInputStream()){
+                Files.copy(
+                    input, 
+                    temporaryFile,
+                    StandardCopyOption.REPLACE_EXISTING
+                );   
+            }
+
+            Files.move(temporaryFile, destination);
+            return toResponse(destination);
+        } catch (FileAlreadyExistsException exception){
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT, 
+                "File already exists"
+            );
+        } catch (IOException exception){
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Could not upload file",
+                exception
+            );
+        } finally {
+            if(temporaryFile != null){
+                try{
+                    Files.deleteIfExists(temporaryFile);
+                } catch (IOException ignored){}
+            }
+        }
+    }
+
+    public Resource downloadFile(String path){
+        Path file = resolvePath(path);
+
+        if(!Files.exists(file, LinkOption.NOFOLLOW_LINKS)){
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "File not found"
+            );
+        }
+
+        if(!Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS)){
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Path is not a file"
+            );
+        }
+
+        try{
+            Resource resource = new UrlResource(file.toUri());
+            if(!resource.isReadable()){
+                throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "File is no readable"
+                );
+            }
+
+            return resource;
+        } catch (IOException exception){
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Could not download file",
+                exception
+            );
+        }
+    }
+    
     private Path resolvePath(String path){
         try{
             Path relative = Path.of(path == null ? "" : path);
@@ -138,6 +238,15 @@ public class StorageService {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 "Invalid directory name"
+            );
+        }
+
+        if (name.startsWith(".upload-")
+                && name.endsWith(".tmp")) {
+
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Reserved file name"
             );
         }
 
