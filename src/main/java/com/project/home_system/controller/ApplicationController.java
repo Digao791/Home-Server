@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.project.home_system.dto.ApplicationHealthResponse;
 import com.project.home_system.dto.ApplicationRequest;
 import com.project.home_system.dto.ApplicationResponse;
+import com.project.home_system.services.ApplicationHealthService;
 import com.project.home_system.services.ApplicationService;
 
 import jakarta.validation.Valid;
@@ -25,7 +27,8 @@ import lombok.RequiredArgsConstructor;
 public class ApplicationController {
 
     private final ApplicationService applicationService;
-
+    private final ApplicationHealthService applicationHealthService;
+    
     @GetMapping
     public List<ApplicationResponse> findAll() {
         return applicationService.findAll();
@@ -34,6 +37,11 @@ public class ApplicationController {
     @GetMapping("/{id}")
     public ApplicationResponse findById(@PathVariable Long id) {
         return applicationService.findById(id);
+    }
+
+    @GetMapping("/{id}/health")
+    public ApplicationHealthResponse checkHealth(@PathVariable Long id) {
+        return applicationHealthService.checkHealth(id);
     }
 
     @PostMapping
