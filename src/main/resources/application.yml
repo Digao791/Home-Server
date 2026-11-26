@@ -1,0 +1,12 @@
+spring:
+    application:
+        name: home-system
+    
+    datasource:
+        url: jdbc:postgresql://localhost:5432/homesystem
+        username: homesystem
+        password: homesystem
+
+    jpa:
+        hibernate:
+            ddl-auto: validate
