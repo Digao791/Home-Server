@@ -5,31 +5,19 @@ import {
 } from 'react-router-dom';
 
 import { LoginPage } from './pages/LoginPage';
+import { DashboardPage } from './pages/DashboardPage';
 
-import {
-    ProtectedRoute
-} from './components/ProtectedRoute';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
-import { useAuth } from './hooks/useAuth';
+import { MainLayout } from './layouts/MainLayout';
 
-function Dashboard() {
-
-    const { user, logout } = useAuth();
+function PlaceholderPage({ title }: { title: string }) {
 
     return (
-        <main style={{ padding: '32px' }}>
-
-            <h1>Home-Lab Dashboard</h1>
-
-            <p>Welcome, {user?.username}</p>
-
-            <button onClick={() => {
-                void logout().catch(console.error);
-            }}>
-                Logout
-            </button>
-
-        </main>
+        <div>
+            <h1>{title}</h1>
+            <p>Coming soon.</p>
+        </div>
     );
 }
 
@@ -45,10 +33,39 @@ export default function App() {
 
             <Route element={<ProtectedRoute />}>
 
-                <Route
-                    path="/"
-                    element={<Dashboard />}
-                />
+                <Route element={<MainLayout />}>
+
+                    <Route
+                        index
+                        element={<DashboardPage />}
+                    />
+
+                    <Route
+                        path="applications"
+                        element={<PlaceholderPage title="Applications" />}
+                    />
+
+                    <Route
+                        path="files"
+                        element={<PlaceholderPage title="Files" />}
+                    />
+
+                    <Route
+                        path="photos"
+                        element={<PlaceholderPage title="Photos" />}
+                    />
+
+                    <Route
+                        path="videos"
+                        element={<PlaceholderPage title="Videos" />}
+                    />
+
+                    <Route
+                        path="settings"
+                        element={<PlaceholderPage title="Settings" />}
+                    />
+
+                </Route>
 
             </Route>
 
