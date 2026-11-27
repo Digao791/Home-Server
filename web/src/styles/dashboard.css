@@ -1,0 +1,137 @@
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.dashboard-heading h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+}
+
+.dashboard-heading p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.dashboard h2 {
+    margin: 0 0 16px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.system-host {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    padding: 20px;
+
+    background: #1b2432;
+    border: 1px solid #2b3646;
+    border-radius: 12px;
+}
+
+.system-host svg {
+    color: #93c5fd;
+    flex-shrink: 0;
+}
+
+.system-host div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.system-host p {
+    margin: 6px 0 0;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.metrics-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+
+    gap: 16px;
+}
+
+.metric-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    min-width: 0;
+    padding: 20px;
+
+    background: #1b2432;
+    border: 1px solid #2b3646;
+    border-radius: 12px;
+}
+
+.metric-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: #94a3b8;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.metric-heading svg {
+    color: #93c5fd;
+    flex-shrink: 0;
+}
+
+.metric-value {
+    font-size: 30px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.metric-progress {
+    height: 6px;
+    background: #354153;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.metric-progress-fill {
+    height: 100%;
+    background: #60a5fa;
+    border-radius: 10px;
+    transition: width 300ms ease;
+}
+
+.metric-description {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.dashboard-timestamp {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.dashboard-warning {
+    color: #fbbf24;
+    font-size: 14px;
+}
+
+@media (min-width: 1024px) {
+
+    .dashboard-heading h1 {
+        font-size: 32px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .metric-progress-fill {
+        transition: none;
+    }
+}
