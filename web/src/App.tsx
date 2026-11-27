@@ -6,7 +6,7 @@ import {
 
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
-
+import { ApplicationsPage } from './pages/ApplicationsPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 import { MainLayout } from './layouts/MainLayout';
@@ -42,7 +42,7 @@ export default function App() {
 
                     <Route
                         path="applications"
-                        element={<PlaceholderPage title="Applications" />}
+                        element={<ApplicationsPage />}
                     />
 
                     <Route
