@@ -4,7 +4,8 @@ import { Outlet } from 'react-router-dom';
 
 import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
-
+import { UploadProvider } from '../contexts/UploadProvider';
+import { UploadPanel } from '../components/UploadPanel';
 import '../styles/layout.css';
 
 export function MainLayout() {
@@ -12,6 +13,7 @@ export function MainLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
+        <UploadProvider>
         <div className="main-layout">
 
             <Sidebar
@@ -40,7 +42,9 @@ export function MainLayout() {
                 </main>
 
             </div>
-
+            
         </div>
+            <UploadPanel />
+        </UploadProvider>
     );
 }
