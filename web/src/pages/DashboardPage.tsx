@@ -11,7 +11,13 @@ import { useSystemInfo } from '../hooks/useSystemInfo';
 import { MetricCard } from '../components/MetricCard';
 
 import '../styles/dashboard.css';
+import { Link } from 'react-router-dom';
 
+import { useApplications } from '../hooks/useApplications';
+
+import { ApplicationCard } from '../components/ApplicationCard';
+
+import '../styles/applications.css';
 function formatBytes(bytes: number): string {
 
     const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
@@ -30,7 +36,12 @@ function formatBytes(bytes: number): string {
 export function DashboardPage() {
 
     const { data, error, isLoading, mutate } = useSystemInfo();
-    
+    const {
+    data: applications,
+    error: applicationsError,
+    isLoading: applicationsLoading
+    } = useApplications();
+
     if (isLoading) {
         return <p>Loading system information...</p>;
     }
@@ -141,6 +152,41 @@ export function DashboardPage() {
                     ))}
 
                 </div>
+
+            </section>
+
+            <section>
+
+                <h2>My applications</h2>
+
+                {applicationsLoading && (
+                    <p>Loading applications...</p>
+                )}
+
+                {applicationsError && (
+                    <p>Could not load applications.</p>
+                )}
+
+                <div className="applications-grid">
+
+                    {applications
+                        ?.filter(application => application.enabled)
+                        .map(application => (
+                            <ApplicationCard
+                                key={application.id}
+                                application={application}
+                            />
+                        ))}
+
+                </div>
+
+                <Link
+                    to="/applications"
+                    className="application-link"
+                    style={{ marginTop: '16px' }}
+                >
+                    Manage applications
+                </Link>
 
             </section>
 
