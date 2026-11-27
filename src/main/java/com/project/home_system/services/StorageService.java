@@ -2,11 +2,13 @@ package com.project.home_system.services;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -24,6 +26,8 @@ import org.springframework.web.server.ResponseStatusException;
 import com.project.home_system.config.StorageProperties;
 import com.project.home_system.dto.CreateDirectoryRequest;
 import com.project.home_system.dto.FileResponse;
+import com.project.home_system.dto.MoveFileRequest;
+import com.project.home_system.dto.RenameFileRequest;
 import com.project.home_system.model.FileType;
 
 @Service 
@@ -258,6 +262,116 @@ public class StorageService {
                 "Invalid directory name"
             );
         }
+    }
+
+    private void validateEntry(Path path){
+        if(path.equals(root)){
+            throw new ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Operation on storage root is forbidden"
+            );
+        }
+
+        if(!Files.exists(path, LinkOption.NOFOLLOW_LINKS)){
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "File or directory not found"
+            );
+        }
+
+        if(!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)
+            && !Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)){
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Unsupported file type"
+            );
+        }
+    }
+
+    private FileResponse moveEntry(Path source, Path destination){
+        if(source.equals(destination)){
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Source and destination are the same"
+            );
+        }
+
+        if(Files.isDirectory(source, LinkOption.NOFOLLOW_LINKS)
+            && destination.startsWith(source)){
+        
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Cannot move a directory into itself"
+            );    
+        }
+
+        try{
+            Files.move(source, destination);
+            return toResponse(destination);
+        } catch( FileAlreadyExistsException exception){
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Destination already exists"
+            );
+        } catch(IOException exception){
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Could not mode file or directory",
+                exception
+            );
+        }
+    }
+
+    public void deleteFile(String path){
+
+        Path target = resolvePath(path);
+        validateEntry(target);
+
+        try{
+            Files.delete(target);
+        } catch (DirectoryNotEmptyException exception){
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Directory is not empty"
+            );
+        } catch (NoSuchFileException exception){
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "File or directory not found"
+            );
+        } catch (IOException exception){
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Could not delete file or directory",
+                exception
+            );
+        }
+    }
+
+    public FileResponse renameFile(RenameFileRequest request){
+        validateName(request.newName());
+        Path source = resolvePath(request.path());
+        validateEntry(source);
+        Path destination = source.resolveSibling(
+            request.newName()
+        );
+        return moveEntry(source, destination);
+    }
+
+    public FileResponse moveFile(MoveFileRequest request){
+        Path source = resolvePath(request.path());
+        validateEntry(source);
+        Path destinationDirectory = resolvePath(
+            request.destinationPath()
+        );
+
+        validateDirectory(destinationDirectory);
+
+        Path destination = destinationDirectory.resolve(
+            source.getFileName()
+        );
+
+        return moveEntry(source, destination);
     }
 
     private void validateDirectory(Path directory){
