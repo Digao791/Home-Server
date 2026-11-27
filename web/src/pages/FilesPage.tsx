@@ -19,7 +19,6 @@ import { useFiles } from '../hooks/useFiles';
 
 import {
     createDirectory,
-    uploadFile,
     renameFile,
     moveFile,
     deleteFile
@@ -30,7 +29,7 @@ import { ApiError } from '../api/client';
 import { FileBreadcrumb } from '../components/FileBreadcrumb';
 import { FileList } from '../components/FileList';
 import { FileActionDialog } from '../components/FileActionDialog';
-
+import { useUpload } from '../hooks/useUpload';
 import type { FileEntry } from '../types/file';
 
 import '../styles/applications.css';
@@ -59,11 +58,9 @@ export function FilesPage() {
 
     const [actionError, setActionError] = useState('');
 
-    const [uploading, setUploading] = useState(false);
-
-    const [uploadStatus, setUploadStatus] = useState('');
-
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const { enqueue } = useUpload();
 
     function navigateTo(directory: string) {
 
@@ -85,96 +82,58 @@ export function FilesPage() {
 
     async function handleAction(value: string) {
 
-        if (!action) return;
+            if (!action) return;
 
-        switch (action.type) {
+            switch (action.type) {
 
-            case 'create':
+                case 'create':
 
-                await createDirectory({
-                    path,
-                    name: value
-                });
+                    await createDirectory({
+                        path,
+                        name: value
+                    });
 
-                break;
+                    break;
 
-            case 'rename':
+                case 'rename':
 
-                await renameFile({
-                    path: action.file.path,
-                    newName: value
-                });
+                    await renameFile({
+                        path: action.file.path,
+                        newName: value
+                    });
 
-                break;
+                    break;
 
-            case 'move':
+                case 'move':
 
-                await moveFile({
-                    path: action.file.path,
-                    destinationPath: value
-                });
+                    await moveFile({
+                        path: action.file.path,
+                        destinationPath: value
+                    });
 
-                await globalMutate(['/api/files', value]);
+                    await globalMutate(['/api/files', value]);
 
-                break;
+                    break;
+            }
+
+            setAction(null);
+
+            await mutate();
         }
 
-        setAction(null);
-
-        await mutate();
-    }
-
-    async function handleUpload(
+        function handleUpload(
         event: ChangeEvent<HTMLInputElement>
     ) {
 
-        const selectedFiles = Array.from(
+        const files = Array.from(
             event.target.files ?? []
         );
 
         event.target.value = '';
 
-        if (selectedFiles.length === 0) return;
+        if (files.length === 0) return;
 
-        setUploading(true);
-        setActionError('');
-
-        const failedFiles: string[] = [];
-
-        try {
-
-            for (let index = 0; index < selectedFiles.length; index++) {
-
-                const file = selectedFiles[index];
-
-                setUploadStatus(
-                    `Uploading ${index + 1}/${selectedFiles.length}: ${file.name}`
-                );
-
-                try {
-
-                    await uploadFile(path, file);
-
-                } catch {
-
-                    failedFiles.push(file.name);
-                }
-            }
-
-            await mutate();
-
-            if (failedFiles.length > 0) {
-
-                setActionError(
-                    `Failed to upload: ${failedFiles.join(', ')}`
-                );
-            }
-
-        } finally {
-
-            setUploading(false);
-            setUploadStatus('');
-        }
+        enqueue(path, files);
     }
 
     async function handleDelete(file: FileEntry) {
@@ -230,7 +189,6 @@ export function FilesPage() {
                     <button
                         className="primary-button"
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={uploading}
                     >
                         <Upload size={18} />
                         Upload
@@ -239,7 +197,6 @@ export function FilesPage() {
                     <button
                         className="secondary-button"
                         onClick={() => setAction({ type: 'create' })}
-                        disabled={uploading}
                     >
                         <FolderPlus size={18} />
                         New folder
@@ -259,17 +216,8 @@ export function FilesPage() {
 
             <FileBreadcrumb
                 path={path}
-                onNavigate={directory => {
-                    if (!uploading) navigateTo(directory);
-                }}
+                onNavigate={navigateTo}
             />
-
-            {uploading && (
-                <div className="upload-status" role="status">
-                    <Upload size={18} />
-                    {uploadStatus}
-                </div>
-            )}
 
             {actionError && (
                 <p className="file-error" role="alert">
@@ -402,17 +350,15 @@ export function FilesPage() {
             <FileList
                 files={filteredFiles}
                 view={view}
-                onOpen={file => {
-                    if (!uploading) handleOpen(file);
-                }}
+                onOpen={handleOpen}
                 onRename={file => {
-                    if (!uploading) setAction({ type: 'rename', file });
+                    setAction({ type: 'rename', file });
                 }}
                 onMove={file => {
-                    if (!uploading) setAction({ type: 'move', file });
+                    setAction({ type: 'move', file });
                 }}
                 onDelete={file => {
-                    if (!uploading) void handleDelete(file);
+                    void handleDelete(file);
                 }}
             />
 
