@@ -1,0 +1,281 @@
+.files-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.files-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.files-heading h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+}
+
+.files-heading p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.files-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.file-breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    padding: 14px;
+
+    background: #1b2432;
+    border: 1px solid #2b3646;
+    border-radius: 10px;
+}
+
+.breadcrumb-segment {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    min-width: 0;
+    color: #94a3b8;
+}
+
+.file-breadcrumb button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    min-width: 0;
+    min-height: 32px;
+
+    background: transparent;
+    border: none;
+    color: #93c5fd;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}
+
+.files-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.file-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    flex: 1;
+    min-width: 0;
+    padding: 0 12px;
+
+    background: #1b2432;
+    border: 1px solid #354153;
+    border-radius: 8px;
+    color: #94a3b8;
+}
+
+.file-search input {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+
+    background: transparent;
+    border: none;
+    color: #f1f5f9;
+    font-size: 16px;
+}
+
+.file-search:focus-within {
+    outline: 2px solid #60a5fa;
+}
+
+.file-search input:focus {
+    outline: none;
+}
+
+.view-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.view-controls .selected {
+    background: #263b58;
+    color: #93c5fd;
+}
+
+.file-list {
+    display: grid;
+    gap: 10px;
+}
+
+.file-entry {
+    display: grid;
+    gap: 10px;
+
+    min-width: 0;
+    padding: 16px;
+
+    background: #1b2432;
+    border: 1px solid #2b3646;
+    border-radius: 10px;
+}
+
+.file-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    min-width: 0;
+}
+
+.file-entry-icon {
+    flex-shrink: 0;
+    color: #93c5fd;
+}
+
+.file-name {
+    min-width: 0;
+    padding: 0;
+
+    background: transparent;
+    border: none;
+    color: #f1f5f9;
+
+    text-align: left;
+    overflow-wrap: anywhere;
+    font-size: 14px;
+}
+
+button.file-name {
+    cursor: pointer;
+}
+
+button.file-name:hover {
+    color: #93c5fd;
+}
+
+.file-size,
+.file-date {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.file-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.file-list-grid {
+    grid-template-columns:
+        repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+}
+
+.file-list-grid .file-identity {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.file-list-grid .file-entry-icon {
+    width: 44px;
+    height: 44px;
+}
+
+.file-action-dialog {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+
+    width: 100%;
+    max-width: 500px;
+    padding: 24px;
+
+    background: #1b2432;
+    border: 1px solid #354153;
+    border-radius: 12px;
+}
+
+.file-action-dialog h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.file-action-dialog label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    color: #cbd5e1;
+    font-size: 14px;
+}
+
+.file-action-dialog input {
+    width: 100%;
+    min-height: 44px;
+    padding: 12px;
+
+    background: #10151e;
+    color: #f1f5f9;
+
+    border: 1px solid #354153;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.file-error {
+    color: #f87171;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.upload-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 16px;
+
+    background: #263b58;
+    color: #93c5fd;
+    border-radius: 10px;
+    overflow-wrap: anywhere;
+}
+
+.files-empty {
+    padding: 40px 16px;
+    text-align: center;
+    color: #94a3b8;
+}
+
+.files-count {
+    margin: 0;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+@media (min-width: 768px) {
+
+    .files-heading {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .file-list-list .file-entry {
+        grid-template-columns:
+            minmax(0, 1fr) 90px 110px auto;
+
+        align-items: center;
+    }
+}

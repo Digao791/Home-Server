@@ -1,0 +1,168 @@
+.upload-panel {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+
+    z-index: 15;
+
+    width: calc(100% - 24px);
+    max-width: 380px;
+
+    background: #1b2432;
+    border: 1px solid #475569;
+    border-radius: 12px;
+
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+    overflow: hidden;
+}
+
+.upload-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    width: 100%;
+    min-height: 56px;
+    padding: 14px;
+
+    background: #263b58;
+    border: none;
+    color: #f1f5f9;
+
+    cursor: pointer;
+}
+
+.upload-active-count {
+    margin-left: auto;
+
+    color: #93c5fd;
+    font-size: 12px;
+}
+
+.upload-panel-list {
+    max-height: min(360px, 45dvh);
+    overflow-y: auto;
+}
+
+.upload-task {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    padding: 16px;
+
+    border-bottom: 1px solid #354153;
+}
+
+.upload-task-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.upload-task-header > svg {
+    flex-shrink: 0;
+    color: #93c5fd;
+}
+
+.upload-task-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    flex: 1;
+    min-width: 0;
+}
+
+.upload-task-info strong {
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.upload-task-info span {
+    font-size: 12px;
+    color: #94a3b8;
+    overflow-wrap: anywhere;
+}
+
+.upload-progress {
+    height: 6px;
+
+    background: #354153;
+    border-radius: 999px;
+
+    overflow: hidden;
+}
+
+.upload-progress-bar {
+    height: 100%;
+
+    background: #3b82f6;
+    border-radius: 999px;
+
+    transition: width 150ms ease;
+}
+
+.upload-progress-bar.processing {
+    background: #a78bfa;
+}
+
+.upload-progress-bar.completed {
+    background: #22c55e;
+}
+
+.upload-progress-bar.failed {
+    background: #ef4444;
+}
+
+.upload-progress-bar.cancelled {
+    background: #64748b;
+}
+
+.upload-task-status {
+    display: flex;
+    justify-content: space-between;
+
+    color: #94a3b8;
+    font-size: 12px;
+    text-transform: capitalize;
+}
+
+.upload-task-header .upload-success {
+    color: #4ade80;
+}
+
+.upload-task-header .upload-failed {
+    color: #f87171;
+}
+
+.upload-error {
+    margin: 0;
+
+    color: #f87171;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.upload-panel-footer {
+    display: flex;
+    justify-content: flex-end;
+
+    padding: 12px;
+}
+
+@media (min-width: 768px) {
+
+    .upload-panel {
+        right: 24px;
+        bottom: 24px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .upload-progress-bar {
+        transition: none;
+    }
+}
