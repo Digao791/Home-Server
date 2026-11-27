@@ -8,7 +8,7 @@ import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ApplicationsPage } from './pages/ApplicationsPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
-
+import { FilesPage } from './pages/FilesPage';
 import { MainLayout } from './layouts/MainLayout';
 
 function PlaceholderPage({ title }: { title: string }) {
@@ -47,7 +47,7 @@ export default function App() {
 
                     <Route
                         path="files"
-                        element={<PlaceholderPage title="Files" />}
+                        element={<FilesPage />}
                     />
 
                     <Route
