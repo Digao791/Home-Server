@@ -39,6 +39,11 @@ export function clearCsrf(): void {
     csrfToken = null;
 }
 
+export async function getCsrfToken(): Promise<CsrfToken> {
+
+    return csrfToken ?? await refreshCsrf();
+}
+
 export async function apiRequest<T>(
     url: string,
     options: RequestInit = {}
@@ -57,7 +62,7 @@ export async function apiRequest<T>(
 
     if (requiresCsrf) {
 
-        const csrf = csrfToken ?? await refreshCsrf();
+        const csrf = await getCsrfToken();
 
         headers.set(csrf.headerName, csrf.token);
     }
